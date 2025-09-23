@@ -114,3 +114,9 @@ Thank you and we look forward to reviewing your submission. We'll review every s
 ## Hint
 
 This problem is a variant of the [bin packing problem](https://en.wikipedia.org/wiki/Bin_packing_problem).
+
+
+## implementation and thoughts
+could start by sorting the litings at a unique location from cheapest to most expensive, and trying to place the largest vehicles in the cheapest listing  
+
+this might mean we are ignoring cases where two or more vehicles could fit perfectly into a listing, I'll start with this greedy approach
