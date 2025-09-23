@@ -27,5 +27,3 @@ curl -X POST http://localhost:3000/ \
 - `POST /` - Search for vehicle storage
 
 ## Deployment
-
-This project is ready to deploy to Vercel, Railway, or Heroku.
