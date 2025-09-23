@@ -40,11 +40,37 @@ app.post('/', (req, res) => {
 // Your algorithm function - implement this!
 function findBestCombinations(vehicles, listings) {
   // TODO: Implement the bin packing algorithm
+  // call the helper to group listings by location 
+  listingsByLocation = groupListingByLocation(vehicles, listings);
 
+
+
+
+  
 
 
   // For now, return empty array
   return [];
+}
+
+
+// Helper method to group all listings to a location 
+// should look like dictionary, where the location id is a unique key 
+// and the vaue is an array of listing objects
+function groupListingByLocation(vehicles, listings) {
+  // Group listings by location_id
+  const listingsByLocation = {};
+  
+  for (const listing of listings) {
+    const locationId = listing.location_id;
+    
+    if (!listingsByLocation[locationId]) {
+      listingsByLocation[locationId] = [];
+    }
+    
+    listingsByLocation[locationId].push(listing);
+  }
+  return listingsByLocation;
 }
 
 // Start server
