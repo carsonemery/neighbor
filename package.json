@@ -2,10 +2,11 @@
   "name": "vehicle-storage-search",
   "version": "1.0.0",
   "description": "Multi-vehicle storage search API",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
+    "start": "node index.js",
+    "dev": "node index.js",
+    "build": "echo 'No build step required'",
     "test": "node test.js"
   },
   "dependencies": {

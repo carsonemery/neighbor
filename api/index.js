@@ -1,7 +1,7 @@
 const listings = require('../listings.json');
 
 // Main handler function for Vercel
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   // Handle GET requests
   if (req.method === 'GET') {
     res.json({ 
@@ -35,8 +35,6 @@ export default function handler(req, res) {
   // Method not allowed
   res.status(405).json({ error: 'Method not allowed' });
 }
-
-// Keep all your other functions exactly the same...
 
 // Function that orchestratest the search algorithm
 function findBestCombinations(vehicles, listings) {
@@ -247,10 +245,5 @@ function expandVehicles(vehicles) {
   return expandedVehicles;
 }
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Test with: curl -X POST http://localhost:${PORT}/ -H "Content-Type: application/json" -d '[{"length": 10, "quantity": 1}]'`);
-});
-
-module.exports = { app, findBestCombinations };
+// Export for testing
+module.exports.findBestCombinations = findBestCombinations;
