@@ -135,6 +135,29 @@ function canFitAllVehicles(vehicles, listingsToUse) {
   return true; // All vehicles passed
 }
 
+function tryPlaceVehicle(vehicle, space) {
+  // Check basic fit 
+  if (!vehicleFitsInListing(vehicle, space)) {
+    return false;
+  }
+  
+  // Calculate how many 10 foot wide strips we have
+  const numStrips = Math.floor(space.width / 10);
+
+  // Find a strip with enough room 
+  for (let stripIndex = 0; stripIndex < numStrips; stripIndex) {
+    const usedInStrip = space.usedStrips[stripIndex] || 0;
+    const remainingLength = space.length - usedInStrip;
+
+    if (remainingLength >= vehicle.length) {
+      // Place vehicle in this strip 
+      space.usedStrips[stripIndex] = usedInStrip + vehicle.length;
+      return true;
+    }
+  }
+  return false;
+}
+
 
 /// Helpers
 
