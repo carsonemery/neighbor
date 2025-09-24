@@ -32,14 +32,24 @@ curl -X POST http://localhost:3000/ \
   I started running into challenges.
 
   1) Firstly I have never used javascript in this capacity before, so that was probably the biggest challenge, understanding the syntax and things suchn as the difference between "is", "of" and "in" (in foreach loops)
-  2) I realized that I was not modeling the 2D space correctly, and was also directly changing the dimension data of locations after placing a vehicle instead of making copies of it 
+  2) I realized that I was not modeling the 2D space correctly, and was also directly changing the dimension data of locations after placing a vehicle instead of making copies of it, there were multiple things wrong, and as I tried to 
+    test (which I have also never done in javascript) things became challenging
 
-  What I did right before I switched:
+  What I was doing right before I switched my approach and got some help from Claude:
   1) Grouped by location 
   2) Sorted by price
   3) Expanded vehicles by quantity
   4) Attempted to place largest vehicles first 
   
-  After testing and realizing parts of my approach were flawed, I decided to completely switch my approach to a mix of 
+  After doing some more research and getting some help from Claude, I recognized I needed to switch my approach of modeling the space left available after placing a vehicle, and could use a mix of greedy and exhaustive to optimize the algorithm
 
-- I found it challenging to track 
+  2) I use a two-phase approach for finding combinations:
+     - Phase 1 (Greedy): Since listings are sorted by price, I first try simple combinations by incrementally adding the cheapest listings up to 10. This often finds the optimal solution quickly without exhaustive searching.
+     - Phase 2 (Exhaustive): If the greedy approach doesn't find a valid combination, I fall back to checking all possible combinations using bit masking (power set), but limited to 12 listings max to prevent performance issues.
+  
+  3) The switch from greedy to exhaustive happens automatically:
+     - Greedy runs first because it's fast (max 10 attempts)
+     - If greedy finds no valid combination where all vehicles fit, exhaustive search runs as a fallback
+     - This hybrid approach balances performance (usually fast) with completeness (guaranteed to find a solution if one exists within the first 12 listings)
+
+The entire project took roughly 7/8 hours including commenting and setuping up the server
