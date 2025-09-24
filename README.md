@@ -27,3 +27,12 @@ curl -X POST http://localhost:3000/ \
 - `POST /` - Search for vehicle storage
 
 ## Deployment
+
+
+
+## implementation and thoughts
+could start by sorting the litings at a unique location from cheapest to most expensive, and trying to place the largest vehicles in the cheapest listing  
+
+this might mean we are ignoring cases where two or more vehicles could fit perfectly into a listing, I'll start with this greedy approach
+
+optimization, in the recursive method, I could later loops
