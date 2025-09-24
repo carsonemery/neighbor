@@ -37,6 +37,7 @@ app.post('/', (req, res) => {
   }
 });
 
+// Function that orchestratest the search algorithm
 function findBestCombinations(vehicles, listings) {
   const expandedVehicles = expandVehicles(vehicles);
   const listingsByLocation = groupListingByLocation(listings);
