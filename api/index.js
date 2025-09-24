@@ -1,41 +1,42 @@
-const express = require('express');
-const listings = require('./listings.json');
+const listings = require('../listings.json');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware to parse JSON
-app.use(express.json());
-
-// Basic health check endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Vehicle Storage Search API is running!',
-    endpoints: {
-      'POST /': 'Search for vehicle storage'
-    }
-  });
-});
-
-// Main search endpoint
-app.post('/', (req, res) => {
-  try {
-    const vehicles = req.body;
-    
-    // Validate input
-    if (!Array.isArray(vehicles)) {
-      return res.status(400).json({ error: 'Request body must be an array' });
-    }
-    
-    // For now return a placeholder respose
-    const results = findBestCombinations(vehicles, listings);
-    
-    res.json(results);
-  } catch (error) {
-    console.error('Error processing request:', error);
-    res.status(500).json({ error: 'Internal server error' });
+// Main handler function for Vercel
+export default function handler(req, res) {
+  // Handle GET requests
+  if (req.method === 'GET') {
+    res.json({ 
+      message: 'Vehicle Storage Search API is running!',
+      endpoints: {
+        'POST /': 'Search for vehicle storage'
+      }
+    });
+    return;
   }
-});
+
+  // Handle POST requests
+  if (req.method === 'POST') {
+    try {
+      const vehicles = req.body;
+      
+      // Validate input
+      if (!Array.isArray(vehicles)) {
+        return res.status(400).json({ error: 'Request body must be an array' });
+      }
+      
+      const results = findBestCombinations(vehicles, listings);
+      res.json(results);
+    } catch (error) {
+      console.error('Error processing request:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+    return;
+  }
+
+  // Method not allowed
+  res.status(405).json({ error: 'Method not allowed' });
+}
+
+// Keep all your other functions exactly the same...
 
 // Function that orchestratest the search algorithm
 function findBestCombinations(vehicles, listings) {
@@ -87,7 +88,7 @@ function findCheapestValidCombination(vehicles, locationListings) {
     const combination = locationListings.slice(0, size);
     
     if (canFitAllVehicles(vehicles, combination)) {
-      const totalPrice = combination.reduce((sum, l) => + l.price_in_cents, 0);
+      const totalPrice = combination.reduce((sum, l) => sum + l.price_in_cents, 0);
       return {
         listing_ids: combination.map(l => l.id),
         total_price: totalPrice
