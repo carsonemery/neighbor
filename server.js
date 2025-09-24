@@ -42,13 +42,21 @@ function findBestCombinations(vehicles, listings) {
   const listingsByLocation = groupListingByLocation(listings);
   const results = [];
 
+  console.log(`Searching for placement of ${expandedVehicles.length} vehicles across ${Object.keys(listingsByLocation).length} locations...`);
+
   // For each location, try to find valid combinations
+  let locationsChecked = 0;
   for (const locationId in listingsByLocation) {
     const locationListings = listingsByLocation[locationId];
-
-    // Find the cheapest valid combination for this location 
+    locationsChecked++;
+    
+    if (locationsChecked % 100 === 0) {
+      console.log(`Checked ${locationsChecked} locations...`);
+    }
+    
+    // Find the cheapest valid combination for this location
     const cheapestValid = findCheapestValidCombination(
-      expandedVehicles,
+      expandedVehicles, 
       locationListings
     );
 
@@ -59,7 +67,10 @@ function findBestCombinations(vehicles, listings) {
         total_price_in_cents: cheapestValid.total_price
       });
     }
-  }  
+  }
+
+  console.log(`Found ${results.length} valid locations out of ${locationsChecked} checked`);
+
   
   // Sort results by price (cheapest first)
   results.sort((a, b) => a.total_price_in_cents - b.total_price_in_cents);
@@ -69,11 +80,30 @@ function findBestCombinations(vehicles, listings) {
 
 // Find the cheapest combination of listings that can fit all vehicles
 function findCheapestValidCombination(vehicles, locationListings) {
+  
+  
+  for (let size = 1; size <= Math.min(locationListings.length, 10); size++) {
+    const combination = locationListings.slice(0, size);
+    
+    if (canFitAllVehicles(vehicles, combination)) {
+      const totalPrice = combination.reduce((sum, l) => + l.price_in_cents, 0);
+      return {
+        listing_ids: combination.map(l => l.id),
+        total_price: totalPrice
+      }
+    }
+  }
+  // If simple approach didn't work, do exhaustive search for remaining listings
+  // but limit to reasonable number to prevent hanging
+  const maxListings = Math.min(locationListings.length, 12);
+  return findCheapestValidCombinationExhaustive(vehicles, locationListings.slice(0, maxListings));
+}
+
+// Fallback exhaustive search for complex cases
+function findCheapestValidCombinationExhaustive(vehicles, locationListings) {
   let bestCombination = null;
   let bestPrice = Infinity;
   
-  // Try all possible combinations of listings
-  // This is 2^n where n is number of listings at this location
   const numCombinations = Math.pow(2, locationListings.length);
   
   // Start from 1 to skip empty combination
@@ -82,7 +112,6 @@ function findCheapestValidCombination(vehicles, locationListings) {
     let totalPrice = 0;
     
     // Build combination based on binary representation of i
-    // If bit j is set in i, include listing j
     for (let j = 0; j < locationListings.length; j++) {
       if (i & (1 << j)) {
         combination.push(locationListings[j]);
@@ -102,6 +131,7 @@ function findCheapestValidCombination(vehicles, locationListings) {
       bestPrice = totalPrice;
     }
   }
+  
   return bestCombination;
 }
 
@@ -135,6 +165,7 @@ function canFitAllVehicles(vehicles, listingsToUse) {
   return true; // All vehicles passed
 }
 
+// Try to place a vehicle in a given space
 function tryPlaceVehicle(vehicle, space) {
   // Check basic fit 
   if (!vehicleFitsInListing(vehicle, space)) {
@@ -145,7 +176,7 @@ function tryPlaceVehicle(vehicle, space) {
   const numStrips = Math.floor(space.width / 10);
 
   // Find a strip with enough room 
-  for (let stripIndex = 0; stripIndex < numStrips; stripIndex) {
+  for (let stripIndex = 0; stripIndex < numStrips; stripIndex++) {
     const usedInStrip = space.usedStrips[stripIndex] || 0;
     const remainingLength = space.length - usedInStrip;
 
