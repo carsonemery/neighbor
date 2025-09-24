@@ -37,59 +37,104 @@ app.post('/', (req, res) => {
   }
 });
 
-
-
-
-
-
 function findBestCombinations(vehicles, listings) {
   const expandedVehicles = expandVehicles(vehicles);
   const listingsByLocation = groupListingByLocation(listings);
   const results = [];
 
-  // for each location try to fit all vehicles
+  // For each location, try to find valid combinations
   for (const locationId in listingsByLocation) {
     const locationListings = listingsByLocation[locationId];
-    const placedVehicles = new Set();
-    const usedListings = [];
 
-    // one vehicle at a time, try to place the vehicle in all of the possible listings
-    // at a location
-    for (const vehicle of expandedVehicles) {
-      if (placedVehicles.has(vehicle)) continue; // Skip if already placed
-      let placed = false;
+    // Find the cheapest valid combination for this location 
+    const cheapestValid = findCheapestValidCombination(
+      expandedVehicles,
+      locationListings
+    );
 
-      // Try placing each vehicle at at each listing
-      for (const listing of locationListings) {
-        if (vehicleFitsInListing(vehicle, listing)) {
-          // Place the vehicle and update the dimensions 
-          listing.length = listing.length - vehicle.length;
-          listing.width = listing.width - vehicle.width;
-
-          if (!usedListings.includes(listing)) {
-            usedListings.push(listing);
-          }
-
-          placedVehicles.add(vehicle);
-          placed = true;
-          break;
-          }
-        }
-      if (!placed) break; // Cant place this vehicle
-    }
-
-    // If all vehicles placed, add to results
-    if (placedVehicles.size === expandedVehicles.length) {
-      const totalCost = usedListings.reduce((sum, listing) => sum + listing.price_in_cents, 0);
+    if (cheapestValid) {
       results.push({
         location_id: locationId,
-        listing_ids: usedListings.map(listing => listing.id),
-        total_price_in_cents: totalCost
+        listing_ids: cheapestValid.listing_ids,
+        total_price_in_cents: cheapestValid.total_price
       });
     }
-  }
+  }  
+  
+  // Sort results by price (cheapest first)
+  results.sort((a, b) => a.total_price_in_cents - b.total_price_in_cents);
+  
   return results;
 }
+
+// Find the cheapest combination of listings that can fit all vehicles
+function findCheapestValidCombination(vehicles, locationListings) {
+  let bestCombination = null;
+  let bestPrice = Infinity;
+  
+  // Try all possible combinations of listings
+  // This is 2^n where n is number of listings at this location
+  const numCombinations = Math.pow(2, locationListings.length);
+  
+  // Start from 1 to skip empty combination
+  for (let i = 1; i < numCombinations; i++) {
+    const combination = [];
+    let totalPrice = 0;
+    
+    // Build combination based on binary representation of i
+    // If bit j is set in i, include listing j
+    for (let j = 0; j < locationListings.length; j++) {
+      if (i & (1 << j)) {
+        combination.push(locationListings[j]);
+        totalPrice += locationListings[j].price_in_cents;
+      }
+    }
+    
+    // Skip if already more expensive than best found
+    if (totalPrice >= bestPrice) continue;
+    
+    // Check if all vehicles fit in this combination
+    if (canFitAllVehicles(vehicles, combination)) {
+      bestCombination = {
+        listing_ids: combination.map(l => l.id),
+        total_price: totalPrice
+      };
+      bestPrice = totalPrice;
+    }
+  }
+  return bestCombination;
+}
+
+
+// Check if all vehicles can fit in the given listings 
+function canFitAllVehicles(vehicles, listingsToUse) {
+  // Create a copy of listings with available space
+  const availableSpaces = listingsToUse.map(listing => ({
+    id: listing.id,
+    length: listing.length,
+    width: listing.width,
+    usedStrips: [] // Track how much of each 10-foot strip is used
+  }));
+
+  // Try to place each vehicle
+  for (const vehicle of vehicles) {
+    let placed = false;
+
+    // Try to palce in each available space
+    for (const space of availableSpaces) {
+      if (tryPlaceVehicle(vehicle, space)) {
+        placed = true;
+        break;
+      }
+    }
+
+    if (!placed) {
+      return false; // Couldn't place this vehicle
+    }
+  }
+  return true; // All vehicles passed
+}
+
 
 /// Helpers
 
