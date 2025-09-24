@@ -8,18 +8,8 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 
-// API routes
-app.all('/api', apiHandler);
-app.all('/api/*', apiHandler);
-
-// Root route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Vehicle Storage Search API',
-    api_endpoint: '/api',
-    status: 'running'
-  });
-});
+// Main API routes (as specified in README)
+app.all('/', apiHandler);
 
 // Start server
 if (require.main === module) {
